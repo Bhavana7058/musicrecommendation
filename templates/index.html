@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Emotion-Based Music Player</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Emotion-Based Music Player</h1>
+    <div class="video-container">
+        <img src="{{ url_for('video_feed') }}" id="videoFeed" />
+    </div>
+
+    <div class="controls">
+        <button onclick="startMusic()">Start</button>
+        <button onclick="stopMusic()">Stop</button>
+        <button onclick="nextSong()">Next</button>
+        <button onclick="prevSong()">Prev</button>
+    </div>
+
+    <audio id="musicPlayer" controls autoplay hidden></audio>
+
+    <script>
+        function startMusic() {
+            fetch('/start')
+                .then(response => {
+                    if (response.ok) {
+                        updatePlayer();
+                    }
+                });
+        }
+
+        function stopMusic() {
+            fetch('/stop');
+            document.getElementById('musicPlayer').pause();
+        }
+
+        function nextSong() {
+            fetch('/next')
+                .then(response => {
+                    if (response.ok) {
+                        updatePlayer();
+                    }
+                });
+        }
+
+        function prevSong() {
+            fetch('/prev')
+                .then(response => {
+                    if (response.ok) {
+                        updatePlayer();
+                    }
+                });
+        }
+
+        function updatePlayer() {
+            fetch('/get_current_emotion')
+                .then(response => response.json())
+                .then(data => {
+                    const emotion = data.emotion;
+                    const audio = document.getElementById('musicPlayer');
+                    fetch('/start')
+                        .then(response => {
+                            if (!response.ok) return;
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            if (blob) {
+                                audio.src = URL.createObjectURL(blob);
+                                audio.play();
+                            }
+                        });
+                });
+        }
+
+        setInterval(updatePlayer, 10000); // Update every 10 seconds
+    </script>
+</body>
+</html>
